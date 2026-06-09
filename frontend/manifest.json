@@ -1,0 +1,10 @@
+{
+  "name": "PULSE EMS Wall Time",
+  "short_name": "PULSE",
+  "description": "Real-time ED wall time predictions for EMS crews",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F4F0",
+  "theme_color": "#16150F",
+  "icons": []
+}

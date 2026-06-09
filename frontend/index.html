@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>PULSE — EMS Wall Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="css/pulse.css">
+<link rel="manifest" href="manifest.json">
+</head>
+<body>
+<div class="app">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="cw">
+    <div class="tb-row1">
+      <div class="brand" id="brand-home" style="cursor:pointer">
+        <span class="brand-name">Pulse</span>
+        <span class="brand-tag">EMS Routing</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="back-btn" id="back-btn" style="display:none" onclick="goBack()">← Back</button>
+        <div class="live-pill"><div class="ldot"></div>Live</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     LANDING SCREEN
+═══════════════════════════════════════════════ -->
+<div class="scr active" id="scr-landing">
+  <div class="cw">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-eyebrow">New York State · Real-time</div>
+      <h1 class="hero-title">EMS Wall Time</h1>
+      <p class="hero-sub">Crowdsourced ED offload predictions for ambulance crews — know before you go.</p>
+    </div>
+
+    <!-- How it works -->
+    <div class="how-card">
+      <div class="how-title">How it works</div>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="how-num">1</div>
+          <div class="how-text">
+            <strong>Crews report</strong> — when you arrive at an ED, you report whether you're waiting and for how long. Takes under 10 seconds. Anonymous.
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-num">2</div>
+          <div class="how-text">
+            <strong>We crowdsource</strong> — every report from every crew in range is pooled and time-weighted. Recent reports count more.
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-num">3</div>
+          <div class="how-text">
+            <strong>We predict</strong> — our queue model computes an estimated wall time per hospital based on queue depth, throughput, and walk-in volume.
+          </div>
+        </div>
+      </div>
+      <div class="how-note">Reports expire after 30 min · No account needed · Helps every crew within 50 miles</div>
+    </div>
+
+    <!-- CTA buttons -->
+    <div class="landing-btns">
+      <button class="lbtn primary" id="btn-report">
+        <div class="lbtn-inner">
+          <span class="lbtn-icon">📋</span>
+          <div>
+            <div class="lbtn-label">Report Wall Time</div>
+            <div class="lbtn-sub">I'm at an ED right now</div>
+          </div>
+        </div>
+      </button>
+      <button class="lbtn secondary" id="btn-dashboard">
+        <div class="lbtn-inner">
+          <span class="lbtn-icon">🏥</span>
+          <div>
+            <div class="lbtn-label">View Nearby Wall Times</div>
+            <div class="lbtn-sub">Find the best ED to go to</div>
+          </div>
+        </div>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FORM SCREEN
+═══════════════════════════════════════════════ -->
+<div class="scr" id="scr-form">
+  <div class="cw">
+    <div class="form-scr">
+      <div class="utitle">Report status</div>
+      <div class="usub">Helps every crew within 50 miles. Under 10 seconds.</div>
+
+      <div class="flbl">Select hospital</div>
+      <div id="hospital-confirm">
+        <div id="hospital-selected" style="display:none"></div>
+        <div id="hospital-manual">
+          <input type="text" class="search-bar" id="manual-search" placeholder="Type hospital name to search…" autocomplete="off">
+          <div id="manual-list">
+            <p class="search-hint">Start typing to search any NY hospital…</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flbl" style="margin-top:18px">Waiting outside ER?</div>
+      <div class="bintog">
+        <button class="bbt waiting on" data-value="true">✓ Waiting now</button>
+        <button class="bbt cleared" data-value="false">✗ Just cleared</button>
+      </div>
+
+      <div class="flbl">How long waiting? <span class="flbl-unit">(minutes — type any number)</span></div>
+      <div class="wait-input-row">
+        <input type="number" class="wait-num-input" id="wait-minutes-input"
+          min="1" max="240" value="15" placeholder="0" inputmode="numeric" pattern="[0-9]*">
+        <span class="wait-unit-label">min</span>
+      </div>
+      <div class="wait-chips" id="wait-chips">
+        <button class="wchip" data-value="5">5</button>
+        <button class="wchip" data-value="10">10</button>
+        <button class="wchip on" data-value="15">15</button>
+        <button class="wchip" data-value="20">20</button>
+        <button class="wchip" data-value="30">30</button>
+        <button class="wchip" data-value="45">45</button>
+        <button class="wchip" data-value="60">60</button>
+        <button class="wchip" data-value="90">90</button>
+      </div>
+
+      <div class="flbl">Walk-in volume <span class="flbl-unit">(patients in waiting room)</span></div>
+      <div class="walkin-grid">
+        <button class="wbtn on" data-value="10">10+</button>
+        <button class="wbtn" data-value="20">20+</button>
+        <button class="wbtn" data-value="30">30+</button>
+      </div>
+
+      <button class="btnsub" id="btn-submit">Submit report →</button>
+      <div class="anonote">Anonymous · No login required · Expires in 30 min</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     DASHBOARD SCREEN
+═══════════════════════════════════════════════ -->
+<div class="scr" id="scr-dashboard">
+  <div class="cw">
+
+    <!-- Location bar -->
+    <div class="locbar" id="dash-locbar" onclick="dashboardRefresh()">
+      <div class="loc-ico">📍</div>
+      <div class="loc-txt">
+        <div class="loc-p" id="dash-loc-p">Share your location</div>
+        <div class="loc-s" id="dash-loc-s">Tap to find nearby hospitals</div>
+      </div>
+      <div class="loc-refresh">↻</div>
+    </div>
+
+    <!-- Sort + radius controls -->
+    <div class="dash-controls" id="dash-controls" style="display:none">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Sort by</span>
+        <div class="ctrl-pills">
+          <button class="ctrl-pill on" data-sort="wall">Wall time</button>
+          <button class="ctrl-pill" data-sort="distance">Distance</button>
+          <button class="ctrl-pill" data-sort="total">Total time</button>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Radius</span>
+        <div class="ctrl-pills">
+          <button class="ctrl-pill" data-radius="10">10 mi</button>
+          <button class="ctrl-pill on" data-radius="30">30 mi</button>
+          <button class="ctrl-pill" data-radius="50">50 mi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map-container" style="display:none;margin:10px 0 0;">
+      <div id="dash-map" style="height:240px;border-radius:12px;border:1px solid var(--bdr);overflow:hidden;"></div>
+    </div>
+
+    <!-- Best pick banner -->
+    <div id="dash-bestpick" style="display:none"></div>
+
+    <!-- Hospital list -->
+    <div id="dash-top3"></div>
+    <div id="dash-hlist">
+      <div class="empty">
+        <div class="ei">📍</div>
+        <div class="et">Enable location</div>
+        <div class="es">Tap the bar above to see nearby hospitals sorted by wall time</div>
+      </div>
+    </div>
+
+    <!-- Divider + search any NY hospital -->
+    <div class="search-section">
+      <div class="search-section-head">
+        <span>🔍</span>
+        <div>
+          <div class="search-section-title">Search any NY hospital</div>
+          <div class="search-section-sub">Search beyond your radius — any of the 160+ NY EDs</div>
+        </div>
+      </div>
+      <input type="text" class="search-bar" id="dash-search" placeholder="Type hospital name…" autocomplete="off">
+      <div id="dash-search-results"></div>
+    </div>
+
+    <div class="dash-footer" id="dash-sync">Updated just now</div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script src="runtimeconfig.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

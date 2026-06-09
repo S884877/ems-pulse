@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -23,6 +24,7 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
+# ── API routes (registered first — take priority over static catch-all) ──
 app.include_router(reports_router, prefix="/api")
 app.include_router(hospitals_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
@@ -30,3 +32,10 @@ app.include_router(analytics_router, prefix="/api")
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "version": "1.0.0"}
+
+# ── Serve frontend static files ──
+# html=True → serve index.html for unknown paths (SPA routing)
+# Mounted LAST so /api/* routes above are never shadowed
+_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+if _FRONTEND_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")

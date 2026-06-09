@@ -5,6 +5,17 @@ from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
 
+def _parse_reports(raw: list[dict]) -> list[dict]:
+    now = datetime.now(timezone.utc)
+    for r in raw:
+        for field in ("created_at", "expires_at"):
+            if isinstance(r.get(field), str):
+                try:
+                    r[field] = datetime.fromisoformat(r[field].replace("Z", "+00:00"))
+                except Exception:
+                    r[field] = now
+    return raw
+
 @router.get("/analytics/{hospital_id}")
 async def get_hospital_analytics(hospital_id: str):
     sb = get_supabase()
@@ -20,7 +31,7 @@ async def get_hospital_analytics(hospital_id: str):
         .gte("created_at", cutoff) \
         .execute()
 
-    prediction = predict_wall_time(hospital_id, reports.data or [])
+    prediction = predict_wall_time(hospital_id, _parse_reports(reports.data or []))
 
     return {
         "hospital": hospital.data[0],

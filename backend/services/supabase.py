@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 _supabase: Optional[Client] = None
+_anon_client: Optional[Client] = None
 
 def get_supabase() -> Client:
     global _supabase
@@ -16,6 +17,9 @@ def get_supabase() -> Client:
     return _supabase
 
 def get_anon_client() -> Client:
-    url = os.environ["SUPABASE_URL"]
-    key = os.environ["SUPABASE_ANON_KEY"]
-    return create_client(url, key)
+    global _anon_client
+    if _anon_client is None:
+        url = os.environ["SUPABASE_URL"]
+        key = os.environ["SUPABASE_ANON_KEY"]
+        _anon_client = create_client(url, key)
+    return _anon_client

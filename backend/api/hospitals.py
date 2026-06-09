@@ -38,13 +38,15 @@ async def hospitals_nearby(
     sb = get_supabase()
     radius_m = radius_mi * 1609.34
 
-    result = sb.rpc("hospitals_within_radius", {
-        "origin_lat": lat,
-        "origin_lng": lng,
-        "radius_m": radius_m,
-    }).execute()
-
-    hospitals = result.data or []
+    try:
+        result = sb.rpc("hospitals_within_radius", {
+            "origin_lat": lat,
+            "origin_lng": lng,
+            "radius_m": radius_m,
+        }).execute()
+        hospitals = result.data or []
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Database query failed: {exc}")
 
     enriched = []
     for h in hospitals:
@@ -91,13 +93,23 @@ async def hospitals_nearby(
     }
 
 @router.get("/hospitals/search")
-async def search_hospitals(q: str = Query(..., min_length=2)):
+async def search_hospitals(q: str = Query(..., min_length=2, max_length=100)):
     sb = get_supabase()
-    result = sb.table("hospitals") \
-        .select("id, name, address, city, latitude, longitude") \
-        .ilike("name", f"%{q}%") \
-        .limit(20) \
-        .execute()
+
+    # Strip LIKE wildcards from user input to prevent unexpected matches
+    safe_q = q.replace("%", "").replace("\\", "").strip()
+    if not safe_q:
+        return {"query": q, "results": []}
+
+    # Search by name OR city — fixes "Brooklyn" / "Albany" city searches
+    try:
+        result = sb.table("hospitals") \
+            .select("id, name, address, city, latitude, longitude") \
+            .or_(f"name.ilike.%{safe_q}%,city.ilike.%{safe_q}%") \
+            .limit(20) \
+            .execute()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Search query failed: {exc}")
 
     results = []
     for h in result.data or []:

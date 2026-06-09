@@ -1,6 +1,6 @@
 import httpx
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse"
 
@@ -10,7 +10,7 @@ CACHE_TTL = timedelta(hours=24)
 
 async def reverse_geocode(lat: float, lng: float) -> dict:
     key = f"{lat:.4f},{lng:.4f}"
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     if key in _cache and _cache_ttl.get(key, now) > now:
         return _cache[key]

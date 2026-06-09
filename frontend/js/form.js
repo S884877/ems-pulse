@@ -19,7 +19,6 @@ export function navigate(screen) {
   const target = document.getElementById(`scr-${screen}`);
   if (target) target.classList.add('active');
 
-  // Show/hide back button
   const backBtn = document.getElementById('back-btn');
   if (backBtn) backBtn.style.display = screen === 'landing' ? 'none' : '';
 
@@ -33,135 +32,298 @@ export function navigate(screen) {
   window.scrollTo(0, 0);
 }
 
-export function goBack() {
-  navigate('landing');
-}
+export function goBack() { navigate('landing'); }
 
-// ── Form initialisation ──────────────────────────────────────────────────────
+// ── Form init ─────────────────────────────────────────────────────────────
 async function initForm() {
-  // Reset hospital selection
   ST.hospital = null;
   ST.matchConfirmed = false;
-  showManualSearchAlways();
+  showTrigger();
 
-  // Try to auto-match from GPS in the background
+  // Always reset submit button — user may have navigated away mid-submission
+  // leaving the button disabled with "Submitting…" text permanently
+  const btn = document.getElementById('btn-submit');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Submit report →';
+  }
+
+  // Attempt silent GPS auto-match in background
   try {
     await requestLocation();
     const s = getState();
     const match = await apiGet('/hospitals/match', {
-      lat: s.lat,
-      lng: s.lng,
-      name: s.locationName || '',
+      lat: s.lat, lng: s.lng, name: s.locationName || '',
     });
     if (match.matched && match.auto_selected && match.hospital) {
       ST.hospital = match.hospital;
       ST.matchConfirmed = true;
-      showHospitalConfirmed(match.hospital, true);
+      showConfirmed(match.hospital, 'auto');
     } else if (match.matched && match.confidence >= 60 && match.hospital) {
       ST.hospital = match.hospital;
       ST.matchConfirmed = false;
-      showHospitalConfirmed(match.hospital, false, match.confidence);
+      showConfirmed(match.hospital, 'partial', match.confidence);
     }
-    // If not matched, manual search stays visible
   } catch {
-    // Location denied or error — manual search is already showing, no problem
+    // GPS denied or error — trigger stays visible, user opens picker manually
   }
 }
 
-function showManualSearchAlways() {
+// ── Hospital selection display ────────────────────────────────────────────
+function showTrigger() {
   document.getElementById('hospital-selected').style.display = 'none';
-  document.getElementById('hospital-manual').style.display = 'block';
-  document.getElementById('manual-search').value = '';
-  document.getElementById('manual-list').innerHTML =
-    '<p style="font-size:13px;color:var(--i3);padding:4px 0">Start typing to search NY hospitals…</p>';
+  document.getElementById('hospital-trigger').style.display = 'flex';
 }
 
-function showHospitalConfirmed(hospital, auto, confidence) {
-  document.getElementById('hospital-manual').style.display = 'none';
+/**
+ * @param {object} hospital
+ * @param {'auto'|'partial'|'manual'} mode
+ * @param {number} [confidence]
+ */
+function showConfirmed(hospital, mode, confidence) {
+  document.getElementById('hospital-trigger').style.display = 'none';
   const sel = document.getElementById('hospital-selected');
   sel.style.display = 'block';
+
+  const metaText = {
+    auto: '📍 Auto-detected from GPS',
+    partial: `${confidence}% GPS name match`,
+    manual: '✓ Selected',
+  }[mode] || '✓ Selected';
+
   sel.innerHTML = `
-    <div class="hpbtn on" style="cursor:default">
-      <span>${hospital.name}</span>
-      <span class="pw">${auto ? '✓ Auto-matched' : `${confidence}% match`}</span>
-    </div>
-    <p style="font-size:12px;color:var(--i3);margin-top:6px">
-      Wrong hospital?
-      <button onclick="window._changeHospital()" style="background:none;border:none;color:#1C4F8A;font-weight:600;cursor:pointer;font-size:12px">Change</button>
-    </p>
-  `;
+    <button class="hosp-confirmed-card" onclick="openHospPicker()"
+      aria-label="Change hospital — currently ${hospital.name}">
+      <div class="hosp-confirmed-body">
+        <div class="hosp-confirmed-name">${hospital.name}</div>
+        <div class="hosp-confirmed-meta">${metaText} · tap to change</div>
+      </div>
+      <span class="hosp-confirmed-change" aria-hidden="true">Change</span>
+    </button>`;
 }
 
-window._changeHospital = function () {
-  ST.hospital = null;
-  ST.matchConfirmed = false;
-  showManualSearchAlways();
-};
+// ── Hospital Picker Overlay ───────────────────────────────────────────────
+/**
+ * PUBLIC — called by onclick in HTML and via window.openHospPicker
+ */
+export function openHospPicker() {
+  const overlay = document.getElementById('hosp-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  // Auto-focus search input (slight delay for overlay animation)
+  setTimeout(() => {
+    const inp = document.getElementById('hosp-search-input');
+    inp?.focus();
+    inp?.select();
+  }, 120);
+  // Populate GPS match section quietly
+  _populateGpsMatch();
+}
 
-// ── Manual hospital search (live, no debounce issues) ─────────────────────
-let _searchTimer = null;
-export function setupManualSearch() {
-  const input = document.getElementById('manual-search');
-  if (!input) return;
+function _closeHospPicker() {
+  const overlay = document.getElementById('hosp-overlay');
+  if (overlay) overlay.style.display = 'none';
+  // Clear search state for next open
+  const inp = document.getElementById('hosp-search-input');
+  if (inp) inp.value = '';
+  const clearBtn = document.getElementById('hosp-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  const results = document.getElementById('hosp-search-results');
+  if (results) results.innerHTML = _idleState();
+}
 
+function _idleState() {
+  return `
+    <div class="hosp-idle">
+      <div class="hosp-idle-icon" aria-hidden="true">🏥</div>
+      <div class="hosp-idle-text">Type a hospital name, borough, or city to search across 160+ NY EDs</div>
+    </div>`;
+}
+
+async function _populateGpsMatch() {
+  const el = document.getElementById('hosp-gps-match');
+  if (!el) return;
+  const s = getState();
+  if (!s.lat) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<div class="hosp-gps-detecting">📍 Detecting nearest hospital…</div>`;
+
+  try {
+    const match = await apiGet('/hospitals/match', {
+      lat: s.lat, lng: s.lng, name: s.locationName || '',
+    });
+    if (!match.matched || !match.hospital) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = `
+      <div class="hosp-section-label">Nearest to your location</div>
+      <button class="hosp-result-btn hosp-gps-btn"
+        data-id="${match.hospital.id}"
+        data-name="${encodeURIComponent(match.hospital.name)}"
+        aria-label="Select ${match.hospital.name}">
+        <span class="hosp-result-icon" aria-hidden="true">📍</span>
+        <div class="hosp-result-body">
+          <div class="hosp-result-name">${match.hospital.name}</div>
+          <div class="hosp-result-meta">${match.hospital.city || ''} · ${match.confidence}% GPS match</div>
+        </div>
+        <span class="hosp-result-select">Select</span>
+      </button>
+      <div class="hosp-section-div"></div>`;
+    el.querySelectorAll('.hosp-result-btn').forEach(_wireResultBtn);
+  } catch {
+    el.innerHTML = '';
+  }
+}
+
+/**
+ * PUBLIC — wired in app.js DOMContentLoaded
+ */
+export function setupHospPicker() {
+  // Close on backdrop tap
+  document.getElementById('hosp-overlay')?.addEventListener('click', e => {
+    if (e.target.id === 'hosp-overlay') _closeHospPicker();
+  });
+
+  // Close button
+  document.getElementById('hosp-picker-close')?.addEventListener('click', _closeHospPicker);
+
+  // Clear button
+  const clearBtn = document.getElementById('hosp-search-clear');
+  clearBtn?.addEventListener('click', () => {
+    const inp = document.getElementById('hosp-search-input');
+    if (inp) { inp.value = ''; inp.focus(); }
+    clearBtn.style.display = 'none';
+    document.getElementById('hosp-search-results').innerHTML = _idleState();
+  });
+
+  // Search input
+  const input = document.getElementById('hosp-search-input');
+  const resultsEl = document.getElementById('hosp-search-results');
+  if (!input || !resultsEl) return;
+
+  let _timer = null;
   input.addEventListener('input', () => {
     const q = input.value.trim();
-    clearTimeout(_searchTimer);
+    clearTimeout(_timer);
+
+    if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
 
     if (q.length < 2) {
-      document.getElementById('manual-list').innerHTML =
-        '<p style="font-size:13px;color:var(--i3);padding:4px 0">Start typing to search NY hospitals…</p>';
+      resultsEl.innerHTML = _idleState();
       return;
     }
 
-    document.getElementById('manual-list').innerHTML =
-      '<p style="font-size:13px;color:var(--i3);padding:4px 0">Searching…</p>';
-
-    _searchTimer = setTimeout(async () => {
-      try {
-        const data = await apiGet('/hospitals/search', { q });
-        const list = document.getElementById('manual-list');
-        if (!data.results || !data.results.length) {
-          list.innerHTML = '<p style="font-size:13px;color:var(--i3);padding:4px 0">No hospitals found. Try a different name.</p>';
-          return;
-        }
-        list.innerHTML = data.results.slice(0, 12).map(h => `
-          <button class="hpbtn" data-id="${h.hospital_id}" data-name="${encodeURIComponent(h.name)}">
-            <span>${h.name}</span>
-            <span class="pw">${h.city || ''}</span>
-          </button>
-        `).join('');
-
-        // Attach click handlers
-        list.querySelectorAll('.hpbtn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const id = btn.dataset.id;
-            const name = decodeURIComponent(btn.dataset.name);
-            selectHospital(id, name);
-          });
-        });
-      } catch (err) {
-        document.getElementById('manual-list').innerHTML =
-          `<p style="font-size:13px;color:#B02020;padding:4px 0">Search error — is the server running? (${err.message})</p>`;
-      }
-    }, 300);
+    resultsEl.innerHTML = _loadingState();
+    _timer = setTimeout(() => _doSearch(q, resultsEl), 300);
   });
 }
 
-function selectHospital(id, name) {
-  ST.hospital = { id, name };
-  ST.matchConfirmed = true;
-  showHospitalConfirmed({ name }, true);
-  // Override the auto-matched label to say "Selected"
-  const sel = document.getElementById('hospital-selected');
-  if (sel) {
-    const pw = sel.querySelector('.pw');
-    if (pw) pw.textContent = '✓ Selected';
+// ── Search execution with retry ───────────────────────────────────────────
+async function _doSearch(q, resultsEl, attempt = 0) {
+  try {
+    const data = await apiGet('/hospitals/search', { q });
+    const list = data.results || [];
+
+    if (!list.length) {
+      resultsEl.innerHTML = _emptyState(q);
+      return;
+    }
+
+    const countLabel = `${list.length} hospital${list.length !== 1 ? 's' : ''} found`;
+    resultsEl.innerHTML = `
+      <div class="hosp-results-count" aria-live="polite">${countLabel}</div>
+      ${list.map(h => `
+        <button class="hosp-result-btn"
+          data-id="${h.hospital_id}"
+          data-name="${encodeURIComponent(h.name)}"
+          aria-label="Select ${h.name}, ${h.city || 'NY'}, predicted wait ${h.wall_time_minutes} minutes">
+          <span class="hosp-result-icon" aria-hidden="true">🏥</span>
+          <div class="hosp-result-body">
+            <div class="hosp-result-name">${h.name}</div>
+            <div class="hosp-result-meta">
+              ${h.city || 'New York State'}
+              <span class="hosp-result-dot" aria-hidden="true">·</span>
+              <span class="hosp-result-wait sev-${h.severity}">~${h.wall_time_minutes} min wait</span>
+            </div>
+          </div>
+          <span class="hosp-result-select">Select</span>
+        </button>`).join('')}`;
+
+    resultsEl.querySelectorAll('.hosp-result-btn').forEach(_wireResultBtn);
+
+  } catch (err) {
+    // Retry once automatically before showing error UI
+    if (attempt < 1) {
+      setTimeout(() => _doSearch(q, resultsEl, attempt + 1), 700);
+      return;
+    }
+    resultsEl.innerHTML = _errorState(err, q, resultsEl);
   }
-  toast(`Selected: ${name}`);
 }
 
-// ── Form setup (buttons) ─────────────────────────────────────────────────────
+function _wireResultBtn(btn) {
+  btn.addEventListener('click', () => {
+    const id   = btn.dataset.id;
+    const name = decodeURIComponent(btn.dataset.name);
+    _selectHospital(id, name);
+  });
+}
+
+function _selectHospital(id, name) {
+  ST.hospital = { id, name };
+  ST.matchConfirmed = true;
+  _closeHospPicker();
+  showConfirmed({ id, name }, 'manual');
+  toast(`✓ ${name}`);
+}
+
+// ── State templates ───────────────────────────────────────────────────────
+function _loadingState() {
+  return `
+    <div class="hosp-loading" aria-live="polite" aria-label="Searching hospitals">
+      <div class="hosp-dots" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <span>Searching…</span>
+    </div>`;
+}
+
+function _emptyState(q) {
+  return `
+    <div class="hosp-empty">
+      <div class="hosp-empty-icon" aria-hidden="true">🔍</div>
+      <div class="hosp-empty-title">No hospitals found for "${q}"</div>
+      <div class="hosp-empty-sub">Try a shorter name, borough (e.g. "Brooklyn"), or city (e.g. "Albany")</div>
+    </div>`;
+}
+
+function _errorState(err, q, resultsEl) {
+  const isNetwork = err.message.toLowerCase().includes('fetch') ||
+                    err.message.toLowerCase().includes('network');
+  const title = isNetwork ? 'Cannot reach server' : 'Search failed';
+  const sub   = isNetwork
+    ? 'The backend server is not running. Start it with: <code>uvicorn main:app --reload</code>'
+    : err.message;
+
+  // Use a closure so the retry button can reference q + resultsEl
+  setTimeout(() => {
+    document.getElementById('hosp-err-retry')?.addEventListener('click', () => {
+      resultsEl.innerHTML = _loadingState();
+      _doSearch(q, resultsEl, 0);
+    });
+  }, 0);
+
+  return `
+    <div class="hosp-error">
+      <div class="hosp-error-icon" aria-hidden="true">${isNetwork ? '⚡' : '⚠️'}</div>
+      <div class="hosp-error-title">${title}</div>
+      <div class="hosp-error-sub">${sub}</div>
+      <button class="hosp-error-retry" id="hosp-err-retry">Try again</button>
+    </div>`;
+}
+
+// ── Form controls ─────────────────────────────────────────────────────────
 export function setupForm() {
   // Waiting toggle
   document.querySelectorAll('.bbt').forEach(b => {
@@ -179,14 +341,11 @@ export function setupForm() {
       const val = parseInt(waitInput.value);
       if (!isNaN(val) && val >= 1 && val <= 240) {
         ST.waitMinutes = val;
-        // highlight matching chip if exact match, clear all otherwise
-        document.querySelectorAll('.wchip').forEach(c => {
-          c.classList.toggle('on', parseInt(c.dataset.value) === val);
-        });
+        document.querySelectorAll('.wchip').forEach(c =>
+          c.classList.toggle('on', parseInt(c.dataset.value) === val));
       }
     });
     waitInput.addEventListener('blur', () => {
-      // clamp on blur
       let val = parseInt(waitInput.value);
       if (isNaN(val) || val < 1) val = 1;
       if (val > 240) val = 240;
@@ -214,15 +373,20 @@ export function setupForm() {
   });
 
   // Submit
-  document.getElementById('btn-submit').addEventListener('click', async () => {
+  document.getElementById('btn-submit')?.addEventListener('click', async () => {
     if (!ST.hospital || !ST.matchConfirmed) {
       toast('Please select a hospital first');
-      document.getElementById('manual-search').focus();
+      openHospPicker();
       return;
     }
     const btn = document.getElementById('btn-submit');
     btn.disabled = true;
     btn.textContent = 'Submitting…';
+
+    // 20-second abort guard — a hung network can never permanently freeze the button
+    const controller = new AbortController();
+    const _abort = setTimeout(() => controller.abort(), 20000);
+
     try {
       const s = getState();
       await apiPost('/reports', {
@@ -232,18 +396,20 @@ export function setupForm() {
         is_waiting: ST.isWaiting,
         latitude: s.lat || null,
         longitude: s.lng || null,
-      });
+      }, controller.signal);
+      clearTimeout(_abort);
       toast('✓ Report submitted — thank you!');
       setTimeout(() => navigate('landing'), 2500);
     } catch (err) {
-      toast(`Failed: ${err.message}`);
+      clearTimeout(_abort);
+      const msg = err.name === 'AbortError'
+        ? 'Request timed out — check your connection'
+        : err.message;
+      toast(`Failed: ${msg}`);
       btn.disabled = false;
       btn.textContent = 'Submit report →';
     }
   });
-
-  // Manual search
-  setupManualSearch();
 }
 
 function toast(msg) {

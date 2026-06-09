@@ -23,12 +23,13 @@ export async function apiGet(path, params = {}) {
   return res.json();
 }
 
-export async function apiPost(path, body) {
+export async function apiPost(path, body, signal) {
   const base = getApiBase();
   const res = await fetch(`${base}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+    ...(signal ? { signal } : {}),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');

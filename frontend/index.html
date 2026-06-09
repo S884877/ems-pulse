@@ -34,64 +34,88 @@
      LANDING SCREEN
 ═══════════════════════════════════════════════ -->
 <div class="scr active" id="scr-landing">
+
+  <!-- ── HERO ── -->
   <div class="cw">
-
-    <!-- Hero -->
-    <div class="hero">
-      <div class="hero-eyebrow">New York State · Real-time</div>
-      <h1 class="hero-title">EMS Wall Time</h1>
-      <p class="hero-sub">Crowdsourced ED offload predictions for ambulance crews — know before you go.</p>
-    </div>
-
-    <!-- How it works -->
-    <div class="how-card">
-      <div class="how-title">How it works</div>
-      <div class="how-steps">
-        <div class="how-step">
-          <div class="how-num">1</div>
-          <div class="how-text">
-            <strong>Crews report</strong> — when you arrive at an ED, you report whether you're waiting and for how long. Takes under 10 seconds. Anonymous.
-          </div>
-        </div>
-        <div class="how-step">
-          <div class="how-num">2</div>
-          <div class="how-text">
-            <strong>We crowdsource</strong> — every report from every crew in range is pooled and time-weighted. Recent reports count more.
-          </div>
-        </div>
-        <div class="how-step">
-          <div class="how-num">3</div>
-          <div class="how-text">
-            <strong>We predict</strong> — our queue model computes an estimated wall time per hospital based on queue depth, throughput, and walk-in volume.
-          </div>
-        </div>
+    <div class="lp-hero">
+      <div class="lp-eyebrow" aria-label="New York State, live data">
+        <span class="lp-dot" aria-hidden="true"></span>
+        New York State · Live
       </div>
-      <div class="how-note">Reports expire after 30 min · No account needed · Helps every crew within 50 miles</div>
+      <h1 class="lp-h1">Know the wait<br>before you arrive.</h1>
+      <p class="lp-sub">Real-time ED offload predictions for New York EMS crews.</p>
     </div>
 
-    <!-- CTA buttons -->
-    <div class="landing-btns">
-      <button class="lbtn primary" id="btn-report">
-        <div class="lbtn-inner">
-          <span class="lbtn-icon">📋</span>
-          <div>
-            <div class="lbtn-label">Report Wall Time</div>
-            <div class="lbtn-sub">I'm at an ED right now</div>
+    <!-- ── PRIMARY CTA: Find hospitals (highest priority action) ── -->
+    <div class="lp-ctas">
+      <button class="lp-cta-primary" id="btn-dashboard" aria-label="Find nearby hospitals with live wait predictions">
+        <div class="lp-cta-inner">
+          <div class="lp-cta-text">
+            <div class="lp-cta-label">Find Nearby Hospitals</div>
+            <div class="lp-cta-meta">Live predictions · Sorted by total time</div>
           </div>
+          <span class="lp-cta-arrow" aria-hidden="true">→</span>
         </div>
       </button>
-      <button class="lbtn secondary" id="btn-dashboard">
-        <div class="lbtn-inner">
-          <span class="lbtn-icon">🏥</span>
-          <div>
-            <div class="lbtn-label">View Nearby Wall Times</div>
-            <div class="lbtn-sub">Find the best ED to go to</div>
-          </div>
-        </div>
+
+      <!-- ── SECONDARY CTA: Report (supporting action) ── -->
+      <button class="lp-cta-secondary" id="btn-report" aria-label="Report wait time at current hospital">
+        <span aria-hidden="true">📋</span>
+        <span>Report Wait Time</span>
       </button>
     </div>
 
+    <!-- ── TRUST SIGNALS (immediately after CTAs — reduces hesitation) ── -->
+    <div class="lp-trust" role="list" aria-label="Key features">
+      <span class="lp-trust-item lp-trust-live" role="listitem">
+        <span aria-hidden="true">●</span> Anonymous
+      </span>
+      <span class="lp-trust-sep" aria-hidden="true">·</span>
+      <span class="lp-trust-item" role="listitem">No account needed</span>
+      <span class="lp-trust-sep" aria-hidden="true">·</span>
+      <span class="lp-trust-item" role="listitem">Reports expire 30 min</span>
+      <span class="lp-trust-sep" aria-hidden="true">·</span>
+      <span class="lp-trust-item" role="listitem">160+ NY EDs</span>
+    </div>
   </div>
+
+  <!-- ── HOW IT WORKS (full-bleed section — visual separation) ── -->
+  <section class="lp-hiw" aria-label="How Pulse works">
+    <div class="cw">
+      <div class="lp-hiw-eyebrow">How it works</div>
+      <div class="lp-hiw-grid" role="list">
+
+        <div class="lp-hiw-card" role="listitem">
+          <div class="lp-hiw-num" aria-hidden="true">01</div>
+          <div class="lp-hiw-icon" aria-hidden="true">📍</div>
+          <div class="lp-hiw-body">
+            <div class="lp-hiw-title">Select Location</div>
+            <div class="lp-hiw-text">Allow GPS access or pick a borough or city.</div>
+          </div>
+        </div>
+
+        <div class="lp-hiw-card" role="listitem">
+          <div class="lp-hiw-num" aria-hidden="true">02</div>
+          <div class="lp-hiw-icon" aria-hidden="true">🏥</div>
+          <div class="lp-hiw-body">
+            <div class="lp-hiw-title">Compare Hospitals</div>
+            <div class="lp-hiw-text">View nearby EDs ranked by predicted wait and drive time.</div>
+          </div>
+        </div>
+
+        <div class="lp-hiw-card" role="listitem">
+          <div class="lp-hiw-num" aria-hidden="true">03</div>
+          <div class="lp-hiw-icon" aria-hidden="true">🚑</div>
+          <div class="lp-hiw-body">
+            <div class="lp-hiw-title">Make Faster Decisions</div>
+            <div class="lp-hiw-text">Route to the best ED and reduce offload delays.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -105,13 +129,19 @@
 
       <div class="flbl">Select hospital</div>
       <div id="hospital-confirm">
+        <!-- Shows the confirmed/selected hospital -->
         <div id="hospital-selected" style="display:none"></div>
-        <div id="hospital-manual">
-          <input type="text" class="search-bar" id="manual-search" placeholder="Type hospital name to search…" autocomplete="off">
-          <div id="manual-list">
-            <p class="search-hint">Start typing to search any NY hospital…</p>
+
+        <!-- Tappable trigger — opens the hospital picker overlay -->
+        <button class="hosp-trigger" id="hospital-trigger" onclick="openHospPicker()"
+          aria-label="Open hospital search">
+          <span class="hosp-trigger-icon" aria-hidden="true">🏥</span>
+          <div class="hosp-trigger-text">
+            <div class="hosp-trigger-label">Search for a hospital</div>
+            <div class="hosp-trigger-sub">By name, borough, or city · GPS auto-detect</div>
           </div>
-        </div>
+          <span class="hosp-trigger-caret" aria-hidden="true">›</span>
+        </button>
       </div>
 
       <div class="flbl" style="margin-top:18px">Waiting outside ER?</div>
@@ -157,7 +187,7 @@
   <div class="cw">
 
     <!-- Location bar -->
-    <div class="locbar" id="dash-locbar" onclick="dashboardRefresh()">
+    <div class="locbar" id="dash-locbar" onclick="openLocPicker()">
       <div class="loc-ico">📍</div>
       <div class="loc-txt">
         <div class="loc-p" id="dash-loc-p">Share your location</div>
@@ -165,6 +195,32 @@
       </div>
       <div class="loc-refresh">↻</div>
     </div>
+
+    <!-- ── Persistent Airbnb-style search pill ──
+         Sticky wrapper ensures the pill never scrolls off screen
+         even when browsing 30+ hospital cards below. -->
+    <div class="dash-search-sticky">
+    <div class="dash-searchbar" id="dash-searchbar">
+      <span class="dash-sb-icon" aria-hidden="true">🔍</span>
+      <input
+        type="text"
+        class="dash-sb-input"
+        id="dash-search"
+        placeholder="Search any NY hospital…"
+        autocomplete="off"
+        inputmode="search"
+        aria-label="Search any New York hospital by name, borough, or city">
+      <button
+        class="dash-sb-clear"
+        id="dash-sb-clear"
+        style="display:none"
+        aria-label="Clear search and return to nearby hospitals">✕</button>
+    </div>
+
+    </div><!-- /.dash-search-sticky -->
+
+    <!-- Search results — replaces nearby list while searching -->
+    <div id="dash-search-results" style="display:none"></div>
 
     <!-- Sort + radius controls -->
     <div class="dash-controls" id="dash-controls" style="display:none">
@@ -204,19 +260,6 @@
       </div>
     </div>
 
-    <!-- Divider + search any NY hospital -->
-    <div class="search-section">
-      <div class="search-section-head">
-        <span>🔍</span>
-        <div>
-          <div class="search-section-title">Search any NY hospital</div>
-          <div class="search-section-sub">Search beyond your radius — any of the 160+ NY EDs</div>
-        </div>
-      </div>
-      <input type="text" class="search-bar" id="dash-search" placeholder="Type hospital name…" autocomplete="off">
-      <div id="dash-search-results"></div>
-    </div>
-
     <div class="dash-footer" id="dash-sync">Updated just now</div>
   </div>
 </div>
@@ -224,6 +267,85 @@
 </div><!-- .app -->
 
 <div class="toast" id="toast"></div>
+
+<!-- LOCATION PICKER OVERLAY -->
+<div class="loc-overlay" id="loc-overlay" style="display:none" role="dialog" aria-modal="true" aria-label="Set location">
+  <div class="loc-overlay-inner">
+    <div class="loc-overlay-head">
+      <div class="loc-overlay-title">Set location</div>
+      <button class="loc-overlay-close" id="loc-overlay-close" aria-label="Close">✕</button>
+    </div>
+
+    <button class="loc-gps-btn" id="loc-gps-btn">
+      <span>📍</span>
+      <span>Use my GPS location</span>
+    </button>
+
+    <div class="loc-or">— or search manually —</div>
+
+    <input type="text" class="search-bar" id="loc-search-input"
+      placeholder="City, zip code, or address…" autocomplete="off" inputmode="search">
+    <div id="loc-search-results"></div>
+
+    <div class="loc-quick-section">
+      <div class="loc-quick-label">New York quick picks</div>
+      <div class="loc-quick-grid">
+        <button class="loc-qbtn" data-lat="40.7128" data-lng="-74.0060" data-name="New York City, NY">NYC (Manhattan)</button>
+        <button class="loc-qbtn" data-lat="40.6782" data-lng="-73.9442" data-name="Brooklyn, NY">Brooklyn</button>
+        <button class="loc-qbtn" data-lat="40.7580" data-lng="-73.8855" data-name="Queens, NY">Queens</button>
+        <button class="loc-qbtn" data-lat="40.8448" data-lng="-73.8648" data-name="The Bronx, NY">The Bronx</button>
+        <button class="loc-qbtn" data-lat="40.5795" data-lng="-74.1502" data-name="Staten Island, NY">Staten Island</button>
+        <button class="loc-qbtn" data-lat="42.6526" data-lng="-73.7562" data-name="Albany, NY">Albany</button>
+        <button class="loc-qbtn" data-lat="43.0481" data-lng="-76.1474" data-name="Syracuse, NY">Syracuse</button>
+        <button class="loc-qbtn" data-lat="42.8864" data-lng="-78.8784" data-name="Buffalo, NY">Buffalo</button>
+        <button class="loc-qbtn" data-lat="43.1610" data-lng="-77.6109" data-name="Rochester, NY">Rochester</button>
+        <button class="loc-qbtn" data-lat="40.9176" data-lng="-73.7700" data-name="Yonkers, NY">Yonkers</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HOSPITAL PICKER OVERLAY ══
+     Airbnb-style bottom sheet — replaces inline form search.
+     Solves: (a) search error visibility, (b) scroll-hides-search-bar.
+     The overlay has its own scroll context — the form behind it never moves. -->
+<div class="hosp-overlay" id="hosp-overlay" style="display:none"
+  role="dialog" aria-modal="true" aria-label="Search for a hospital">
+  <div class="hosp-overlay-sheet">
+
+    <!-- Header -->
+    <div class="hosp-overlay-head">
+      <div class="hosp-overlay-drag" aria-hidden="true"></div>
+      <div class="hosp-overlay-title">Select hospital</div>
+      <button class="hosp-overlay-close" id="hosp-picker-close" aria-label="Close">✕</button>
+    </div>
+
+    <!-- GPS auto-match (populated when overlay opens) -->
+    <div id="hosp-gps-match"></div>
+
+    <!-- Search input row — always at top of overlay, never scrolls away -->
+    <div class="hosp-search-row">
+      <div class="hosp-search-wrap">
+        <span class="hosp-search-icon" aria-hidden="true">🔍</span>
+        <input type="text" class="hosp-search-input" id="hosp-search-input"
+          placeholder="Hospital name, borough, or city…"
+          autocomplete="off" inputmode="search"
+          aria-label="Search hospitals">
+        <button class="hosp-search-clear" id="hosp-search-clear"
+          style="display:none" aria-label="Clear search">✕</button>
+      </div>
+    </div>
+
+    <!-- Results area — only this scrolls -->
+    <div class="hosp-results-scroll" id="hosp-search-results">
+      <div class="hosp-idle">
+        <div class="hosp-idle-icon" aria-hidden="true">🏥</div>
+        <div class="hosp-idle-text">Type a hospital name, borough, or city to search across 160+ NY EDs</div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <script src="runtimeconfig.js"></script>
 <script type="module" src="js/app.js"></script>

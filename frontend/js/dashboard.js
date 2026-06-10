@@ -11,8 +11,6 @@ const ST = {
 
 let pollTimer = null;
 let lastUpdated = null;
-let mapInstance = null;
-let mapMarkers = [];
 
 // ── Public ────────────────────────────────────────────────────────────────────
 export async function loadDashboard() {
@@ -186,8 +184,6 @@ async function fetchAndRender(lat, lng) {
     ST.rawHospitals = data.all_in_radius || [];
     applySort();
     renderCards();
-    renderBestPick();
-    initOrUpdateMap(lat, lng);
     touchLastUpdated();
   } catch (err) {
     document.getElementById('dash-hlist').innerHTML =
@@ -214,8 +210,6 @@ function applySort() {
     });
   } else if (ST.sortBy === 'distance') {
     sorted.sort((a, b) => a.distance_miles - b.distance_miles);
-  } else {
-    sorted.sort((a, b) => a.total_minutes - b.total_minutes);
   }
 
   ST.hospitals = sorted;
@@ -287,68 +281,32 @@ function mkCard(h, rank) {
             <span class="hrank">#${rank + 1}</span>
             <div class="hname">${h.name}</div>
           </div>
-          <div class="haddr">${distStr} · ${h.drive_time_minutes} min drive · ${h.city || 'NY'}</div>
+          <div class="haddr">${distStr} · ${h.city || 'NY'}</div>
         </div>
         <div class="spill ${cls}"><div class="spdot"></div>${label}</div>
       </div>
       <div class="hstats">
         <div class="hst">
           <div class="hnum ${cls}">${h.wall_time_minutes}</div>
-          <div class="hlbl">pred. wall</div>
+          <div class="hlbl">pred. wait min</div>
         </div>
         <div class="hst">
-          <div class="hnum N">${h.drive_time_minutes}</div>
-          <div class="hlbl">drive min</div>
-        </div>
-        <div class="hst">
-          <div class="hnum N">${h.total_minutes}</div>
-          <div class="hlbl">total min</div>
-        </div>
-        <div class="hst">
-          <div class="hnum N">${h.queue_count}</div>
-          <div class="hlbl">crews waiting</div>
+          <div class="hnum N">${distStr}</div>
+          <div class="hlbl">distance</div>
         </div>
       </div>
       ${cautionBanner}
       ${staleNotice}
-    </div>`;
-}
-
-function renderBestPick() {
-  const el = document.getElementById('dash-bestpick');
-  if (!el) return;
-
-  // ── "Best" is always the lowest total_minutes hospital ──
-  // NEVER use ST.hospitals[0] here — that depends on the current sort order.
-  // After the severity-sort change, hospitals[0] is the MOST congested, not the best.
-  // We always want to recommend the fastest overall destination.
-  const pool = ST.top3.length ? ST.top3 : ST.rawHospitals;
-  if (!pool.length) { el.style.display = 'none'; return; }
-  const best = [...pool].sort((a, b) => a.total_minutes - b.total_minutes)[0];
-
-  const { cls } = sevInfo(best.severity);
-  const emoji = cls === 'G' ? '✅' : cls === 'A' ? '🟡' : cls === 'O' ? '🟠' : '🔴';
-  const { hasReports } = freshnessInfo(best);
-  const staleNote = !hasReports
-    ? `<div style="font-family:var(--fm);font-size:9px;color:var(--O);margin-top:4px">⚠️ Estimated — no recent crew reports</div>`
-    : '';
-  el.style.display = 'block';
-  el.innerHTML = `
-    <div class="bestpick">
-      <div class="bestpick-badge">${emoji}</div>
-      <div class="bestpick-txt">
-        <div class="bestpick-label">Best option right now</div>
-        <div class="bestpick-name">${best.name}</div>
-        <div class="bestpick-meta">${best.wall_time_minutes} min wall · ${best.distance_miles} mi · ${best.total_minutes} min total</div>
-        ${staleNote}
+      <div class="hcard-action">
+        <button class="hcard-report-btn" data-hosp-id="${h.hospital_id}" data-hosp-name="${h.name.replace(/"/g, '&quot;')}">Report Wait Time</button>
       </div>
     </div>`;
 }
 
+
 function sortLabel() {
   if (ST.sortBy === 'wall')     return 'most congested first — high · caution · moderate · clear';
-  if (ST.sortBy === 'distance') return 'nearest first';
-  return 'lowest total time first';
+  return 'nearest first';
 }
 
 function renderCards() {
@@ -400,6 +358,13 @@ function renderCards() {
     `<div class="shead">${countStr}</div>` +
     dataHealthBar +
     ST.hospitals.map((h, i) => mkCard(h, i)).join('');
+
+  // Wire report buttons
+  listEl.querySelectorAll('.hcard-report-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      import('./form.js').then(m => m.navigate('form'));
+    });
+  });
 }
 
 // ── Polling ───────────────────────────────────────────────────────────────────
@@ -414,8 +379,6 @@ function startPolling() {
       ST.rawHospitals = data.all_in_radius || [];
       applySort();
       renderCards();
-      renderBestPick();
-      updateMapMarkers();
       lastUpdated = Date.now();
     } catch { /* silent — keep showing current data */ }
   }, 20000);
@@ -439,72 +402,8 @@ function setHlistLoading() {
     '<div class="empty"><div class="ei">⏳</div><div class="et">Loading hospitals…</div></div>';
   const t = document.getElementById('dash-top3');
   if (t) t.innerHTML = '';
-  const bp = document.getElementById('dash-bestpick');
-  if (bp) { bp.innerHTML = ''; bp.style.display = 'none'; }
 }
 
-// ── Map ───────────────────────────────────────────────────────────────────────
-function sevColor(sev) {
-  if (sev === 'clear')    return '#0F6844';
-  if (sev === 'moderate') return '#944A00';
-  if (sev === 'caution')  return '#C06000';
-  return '#B02020';
-}
-
-function initOrUpdateMap(lat, lng) {
-  const container = document.getElementById('map-container');
-  const mapDiv    = document.getElementById('dash-map');
-  if (!container || !mapDiv) return;
-  container.style.display = 'block';
-
-  if (!mapInstance) {
-    mapInstance = L.map('dash-map').setView([lat, lng], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors', maxZoom: 18,
-    }).addTo(mapInstance);
-  } else {
-    // Always pass zoom — omitting it resets Leaflet to zoom 0 (world view)
-    const currentZoom = mapInstance.getZoom();
-    mapInstance.setView([lat, lng], currentZoom > 0 ? currentZoom : 11);
-  }
-  updateMapMarkers(lat, lng);
-  setTimeout(() => mapInstance && mapInstance.invalidateSize(), 250);
-}
-
-function updateMapMarkers(centerLat, centerLng) {
-  if (!mapInstance) return;
-  mapMarkers.forEach(m => mapInstance.removeLayer(m));
-  mapMarkers = [];
-
-  const s = getState();
-  const lat = centerLat != null ? centerLat : s.lat;
-  const lng = centerLng != null ? centerLng : s.lng;
-
-  if (lat && lng) {
-    mapMarkers.push(
-      L.circleMarker([lat, lng], { radius: 9, fillColor: '#1C4F8A', color: '#fff', weight: 2.5, fillOpacity: 1 })
-       .addTo(mapInstance).bindPopup('<b>Your location</b>')
-    );
-  }
-
-  ST.hospitals.forEach(h => {
-    if (!h.latitude || !h.longitude) return;
-    const { hasReports } = freshnessInfo(h);
-    const color = sevColor(h.severity);
-    const m = L.circleMarker([h.latitude, h.longitude], {
-      radius: 11, fillColor: color, color: '#fff',
-      weight: hasReports ? 2 : 1,
-      fillOpacity: hasReports ? 0.9 : 0.45,
-      dashArray: hasReports ? null : '4,3',
-    }).addTo(mapInstance)
-      .bindPopup(
-        `<b>${h.name}</b><br>` +
-        `Wall: <b>${h.wall_time_minutes} min</b> · ${h.distance_miles} mi<br>` +
-        (hasReports ? `🟢 Live data` : `🕐 Estimated — no recent reports`)
-      );
-    mapMarkers.push(m);
-  });
-}
 
 // ── Dashboard search ─────────────────────────────────────────────────────────
 // Airbnb pattern: persistent pill at top, results replace nearby list,
@@ -594,7 +493,7 @@ export function setupDashboardSearch() {
           </div>
           ${sorted.map((h, i) => {
             const { cls, label } = sevInfo(h.severity);
-            const hasReports = h.queue_count > 0;
+            const hasReports = h.queue_count > 0 || (h.report_count != null && h.report_count > 0);
             const caution = (h.has_caution && h.caution_flags?.length)
               ? `<div class="caution-banner">
                    <span class="caution-icon">⚠️</span>
@@ -618,14 +517,10 @@ export function setupDashboardSearch() {
                   </div>
                   <div class="spill ${cls}"><div class="spdot"></div>${label}</div>
                 </div>
-                <div class="hstats" style="grid-template-columns:repeat(2,1fr)">
+                <div class="hstats">
                   <div class="hst">
                     <div class="hnum ${cls}">${h.wall_time_minutes}</div>
-                    <div class="hlbl">pred. wall min</div>
-                  </div>
-                  <div class="hst">
-                    <div class="hnum N">${h.queue_count ?? '—'}</div>
-                    <div class="hlbl">crews waiting</div>
+                    <div class="hlbl">pred. wait min</div>
                   </div>
                 </div>
                 ${caution}${stale}

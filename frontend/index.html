@@ -6,8 +6,6 @@
 <title>PULSE — EMS Wall Time</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="css/pulse.css">
 <link rel="manifest" href="manifest.json">
 </head>
@@ -227,9 +225,8 @@
       <div class="ctrl-group">
         <span class="ctrl-label">Sort by</span>
         <div class="ctrl-pills">
-          <button class="ctrl-pill on" data-sort="wall">Wall time</button>
+          <button class="ctrl-pill on" data-sort="wall">Wait time</button>
           <button class="ctrl-pill" data-sort="distance">Distance</button>
-          <button class="ctrl-pill" data-sort="total">Total time</button>
         </div>
       </div>
       <div class="ctrl-group">
@@ -241,14 +238,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Map -->
-    <div id="map-container" style="display:none;margin:10px 0 0;">
-      <div id="dash-map" style="height:240px;border-radius:12px;border:1px solid var(--bdr);overflow:hidden;"></div>
-    </div>
-
-    <!-- Best pick banner -->
-    <div id="dash-bestpick" style="display:none"></div>
 
     <!-- Hospital list -->
     <div id="dash-top3"></div>

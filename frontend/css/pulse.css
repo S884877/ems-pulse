@@ -1205,14 +1205,14 @@ html,body{font-family:var(--ff);background:var(--bg);color:var(--ink);min-height
   flex-shrink: 0; border-top: 1px solid var(--bdr);
 }
 .disc-btn-more {
-  flex: 1; padding: 12px 10px;
-  background: var(--s2); border: 1.5px solid var(--bdr2);
-  border-radius: 10px; font-family: var(--ff); font-size: 13px;
-  font-weight: 600; color: var(--i2); cursor: pointer;
-  transition: background .12s, border-color .12s;
+  flex: 0 0 auto; padding: 8px 14px;
+  background: none; border: 1px solid var(--bdr);
+  border-radius: 8px; font-family: var(--fm); font-size: 11px;
+  font-weight: 500; color: var(--i3); cursor: pointer;
+  transition: color .12s, border-color .12s;
   white-space: nowrap;
 }
-.disc-btn-more:hover { background: var(--bdr); border-color: var(--ink); color: var(--ink); }
+.disc-btn-more:hover { color: var(--ink); border-color: var(--bdr2); }
 .disc-btn-confirm {
   flex: 2; padding: 12px 10px;
   background: var(--ink); border: none;

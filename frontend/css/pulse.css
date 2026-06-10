@@ -247,7 +247,7 @@ html,body{font-family:var(--ff);background:var(--bg);color:var(--ink);min-height
 .spill.O .spdot{background:var(--O);}
 .spill.R .spdot{background:var(--R);}
 
-/* Stats row — 2 columns */
+/* Stats row — legacy (kept for any remaining references) */
 .hstats{display:grid;grid-template-columns:repeat(2,1fr);padding:4px 14px 12px;gap:4px;border-top:1px solid var(--bdr);}
 .hst{text-align:center;padding-top:8px;}
 .hnum{font-family:var(--fm);font-size:20px;font-weight:500;line-height:1;margin-bottom:3px;}
@@ -257,6 +257,16 @@ html,body{font-family:var(--ff);background:var(--bg);color:var(--ink);min-height
 .hnum.R{color:var(--R);}
 .hnum.N{color:var(--ink);}
 .hlbl{font-family:var(--fm);font-size:7.5px;color:var(--i3);text-transform:uppercase;letter-spacing:.07em;}
+
+/* ── Centered wait time hero block ── */
+.hcard-wait{text-align:center;padding:14px 14px 12px;border-top:1px solid var(--bdr);}
+.hcard-wait-num{font-family:var(--fm);font-size:32px;font-weight:600;line-height:1;margin-bottom:4px;}
+.hcard-wait-num.G{color:var(--G);}
+.hcard-wait-num.A{color:var(--A);}
+.hcard-wait-num.O{color:var(--O);}
+.hcard-wait-num.R{color:var(--R);}
+.hcard-wait-unit{font-size:16px;font-weight:500;opacity:.7;}
+.hcard-wait-lbl{font-family:var(--fm);font-size:9px;color:var(--i3);text-transform:uppercase;letter-spacing:.12em;}
 
 /* Caution banner */
 .caution-banner{display:flex;align-items:flex-start;gap:8px;margin:0 14px 12px;padding:8px 11px;background:var(--Obg);border:1px solid var(--Obd);border-radius:8px;}

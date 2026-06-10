@@ -283,17 +283,10 @@ function mkCard(h, rank) {
           </div>
           <div class="haddr">${distStr} · ${h.city || 'NY'}</div>
         </div>
-        <div class="spill ${cls}"><div class="spdot"></div>${label}</div>
       </div>
-      <div class="hstats">
-        <div class="hst">
-          <div class="hnum ${cls}">${h.wall_time_minutes}</div>
-          <div class="hlbl">pred. wait min</div>
-        </div>
-        <div class="hst">
-          <div class="hnum N">${distStr}</div>
-          <div class="hlbl">distance</div>
-        </div>
+      <div class="hcard-wait">
+        <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
+        <div class="hcard-wait-lbl">Wall Time</div>
       </div>
       ${cautionBanner}
       ${staleNotice}
@@ -515,13 +508,10 @@ export function setupDashboardSearch() {
                     <div class="hname">${h.name}</div>
                     <div class="haddr">${h.city || 'New York State'}</div>
                   </div>
-                  <div class="spill ${cls}"><div class="spdot"></div>${label}</div>
                 </div>
-                <div class="hstats">
-                  <div class="hst">
-                    <div class="hnum ${cls}">${h.wall_time_minutes}</div>
-                    <div class="hlbl">pred. wait min</div>
-                  </div>
+                <div class="hcard-wait">
+                  <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
+                  <div class="hcard-wait-lbl">Wall Time</div>
                 </div>
                 ${caution}${stale}
               </div>`;

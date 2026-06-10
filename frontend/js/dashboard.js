@@ -245,7 +245,7 @@ function freshnessBadge(h) {
   if (!hasReports) {
     return `<div class="stale-banner">
       <span>🕐</span>
-      <span>No crew reports in last 30 min — prediction is estimated, not live</span>
+      <span>No crew reports in the last 30 minutes — wall time reflects earlier submissions.</span>
     </div>`;
   }
   return '';
@@ -298,7 +298,7 @@ function mkCard(h, rank) {
 
 
 function sortLabel() {
-  if (ST.sortBy === 'wall')     return 'most congested first — high · caution · moderate · clear';
+  if (ST.sortBy === 'wall')     return 'highest wall time first';
   return 'nearest first';
 }
 
@@ -498,7 +498,7 @@ export function setupDashboardSearch() {
             const stale = !hasReports
               ? `<div class="stale-banner">
                    <span>🕐</span>
-                   <span>No crew reports in last 30 min — estimated only</span>
+                   <span>No crew reports in the last 30 minutes — wall time reflects earlier submissions.</span>
                  </div>`
               : '';
             return `

@@ -18,4 +18,32 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDashboardControls();
   setupLocPicker();
   setupHospPicker();
+  setupDisclaimer();
 });
+
+function setupDisclaimer() {
+  const KEY = 'pulse_disclaimer_acknowledged';
+  if (sessionStorage.getItem(KEY)) return;   // already seen this session
+
+  const modal    = document.getElementById('disc-modal');
+  const confirm  = document.getElementById('disc-confirm');
+  const readMore = document.getElementById('disc-read-more');
+  const expand   = document.getElementById('disc-expand');
+  if (!modal) return;
+
+  modal.style.display = 'flex';
+
+  // Toggle Read More / Read Less
+  let expanded = false;
+  readMore.addEventListener('click', () => {
+    expanded = !expanded;
+    expand.style.display = expanded ? 'block' : 'none';
+    readMore.textContent = expanded ? 'Read Less ▴' : 'Read More ▾';
+  });
+
+  // Dismiss
+  confirm.addEventListener('click', () => {
+    sessionStorage.setItem(KEY, '1');
+    modal.style.display = 'none';
+  });
+}

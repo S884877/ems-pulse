@@ -1103,3 +1103,93 @@ html,body{font-family:var(--ff);background:var(--bg);color:var(--ink);min-height
   .hosp-trigger, .hosp-result-btn, .hosp-confirmed-card { transition: none; transform: none !important; }
   .hosp-dots span { animation: none; opacity: 1; }
 }
+
+/* ══ DISCLAIMER MODAL ══ */
+.disc-backdrop {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(22,21,15,.65);
+  display: flex; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.disc-sheet {
+  width: 100%; max-width: 680px;
+  background: var(--w);
+  border-radius: 20px 20px 0 0;
+  max-height: 88dvh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 -8px 40px rgba(22,21,15,.22);
+  overflow: hidden;
+}
+.disc-header {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 20px 20px 0;
+  flex-shrink: 0;
+}
+.disc-warn-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.disc-title {
+  font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.3;
+}
+.disc-body {
+  padding: 12px 20px 0;
+  font-size: 13px; color: var(--i2); line-height: 1.6;
+  flex-shrink: 0;
+}
+.disc-body strong { color: var(--ink); }
+
+/* Expandable section */
+.disc-expand {
+  padding: 0 20px;
+  overflow-y: auto;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+  border-top: 1px solid var(--bdr);
+  margin-top: 14px;
+}
+.disc-section { padding: 14px 0; border-bottom: 1px solid var(--bdr); }
+.disc-section:last-child { border-bottom: none; }
+.disc-sec-title {
+  font-family: var(--fm); font-size: 9px; font-weight: 600;
+  color: var(--i3); letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.disc-section p, .disc-section ul {
+  font-size: 12px; color: var(--i2); line-height: 1.6; margin: 0;
+}
+.disc-section ul { padding-left: 16px; }
+.disc-section li { margin-bottom: 4px; }
+
+/* Action buttons */
+.disc-actions {
+  display: flex; gap: 8px; padding: 14px 20px 10px;
+  flex-shrink: 0; border-top: 1px solid var(--bdr);
+}
+.disc-btn-more {
+  flex: 1; padding: 12px 10px;
+  background: var(--s2); border: 1.5px solid var(--bdr2);
+  border-radius: 10px; font-family: var(--ff); font-size: 13px;
+  font-weight: 600; color: var(--i2); cursor: pointer;
+  transition: background .12s, border-color .12s;
+  white-space: nowrap;
+}
+.disc-btn-more:hover { background: var(--bdr); border-color: var(--ink); color: var(--ink); }
+.disc-btn-confirm {
+  flex: 2; padding: 12px 10px;
+  background: var(--ink); border: none;
+  border-radius: 10px; font-family: var(--ff); font-size: 14px;
+  font-weight: 700; color: #fff; cursor: pointer;
+  transition: opacity .15s; min-height: 48px;
+}
+.disc-btn-confirm:hover { opacity: .88; }
+.disc-btn-confirm:active { opacity: .75; }
+
+/* Pinned footer */
+.disc-footer {
+  padding: 8px 20px 20px;
+  font-family: var(--fm); font-size: 9px; color: var(--i4);
+  text-align: center; line-height: 1.5; flex-shrink: 0;
+}
+
+@media (min-width: 560px) {
+  .disc-sheet { border-radius: 20px; margin: auto; max-height: 82dvh; }
+  .disc-backdrop { align-items: center; }
+}

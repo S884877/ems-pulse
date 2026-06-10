@@ -336,6 +336,68 @@
   </div>
 </div>
 
+<!-- ══ DISCLAIMER MODAL ══ -->
+<div class="disc-backdrop" id="disc-modal" role="dialog" aria-modal="true" aria-labelledby="disc-title" style="display:none">
+  <div class="disc-sheet">
+
+    <!-- Header -->
+    <div class="disc-header">
+      <span class="disc-warn-icon" aria-hidden="true">⚠️</span>
+      <div class="disc-title" id="disc-title">Crew Advisory Tool — Not an Official Dispatch System</div>
+    </div>
+
+    <!-- Layer 1 body -->
+    <div class="disc-body">
+      PULSE provides hospital routing suggestions based on crew-reported wall time data. This tool is intended to <strong>support — not replace</strong> — crew judgment, medical direction, or official dispatch protocols. Data reflects crew submissions from the last 30 min and may not represent current conditions.
+    </div>
+
+    <!-- Layer 2 — Read More accordion -->
+    <div class="disc-expand" id="disc-expand" style="display:none">
+      <div class="disc-section">
+        <div class="disc-sec-title">About This Tool</div>
+        <p>PULSE is an independently developed decision-support aid for EMS crews. It is not affiliated with, endorsed by, or operated by any hospital system, county emergency management agency, NY State Department of Health, or any government or clinical authority. It does not constitute medical advice or official operational direction.</p>
+      </div>
+      <div class="disc-section">
+        <div class="disc-sec-title">Data Sources & Accuracy</div>
+        <ul>
+          <li>All wall time estimates are crew-reported within a rolling 30-min window.</li>
+          <li>Data is not verified by hospital staff, county dispatch, or any clinical system.</li>
+          <li>Estimates may not reflect real-time diversion status, trauma activations, or sudden ED surges.</li>
+          <li>Actual entry conditions depend on the receiving facility at time of arrival.</li>
+        </ul>
+      </div>
+      <div class="disc-section">
+        <div class="disc-sec-title">Crew Responsibility</div>
+        <ul>
+          <li>Routing and destination decisions remain the sole responsibility of the attending crew and supervising medical director.</li>
+          <li>In any conflict between PULSE data and official dispatch or medical direction — defer to official channels.</li>
+          <li>Do not use PULSE as the sole basis for any clinical or transport decision.</li>
+        </ul>
+      </div>
+      <div class="disc-section">
+        <div class="disc-sec-title">No Liability</div>
+        <p>Use is voluntary. The PULSE team and its developers accept no liability for patient outcomes, transport delays, or operational decisions made using this application.</p>
+      </div>
+      <div class="disc-section">
+        <div class="disc-sec-title">Contact & Feedback</div>
+        <p>To report inaccurate data or submit feedback, contact your EMS operations supervisor or the PULSE team directly.</p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="disc-actions">
+      <button class="disc-btn-more" id="disc-read-more">Read More ▾</button>
+      <button class="disc-btn-confirm" id="disc-confirm">I Understand — Continue</button>
+    </div>
+
+    <!-- Pinned footer -->
+    <div class="disc-footer">
+      By tapping "I Understand" you confirm you have read this notice and agree to use PULSE as a supplementary crew tool only.
+    </div>
+
+  </div>
+</div>
+
 <script src="runtimeconfig.js"></script>
 <script type="module" src="js/app.js"></script>
 </body>

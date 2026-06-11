@@ -9,7 +9,7 @@ router = APIRouter()
 DRIVE_SPEED_MPH = 40
 
 async def get_reports_for_hospital(sb, hospital_id: str) -> list[dict]:
-    cutoff = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(minutes=60)).isoformat()
     result = sb.table("reports") \
         .select("*") \
         .eq("hospital_id", hospital_id) \

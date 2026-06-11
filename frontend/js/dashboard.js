@@ -271,11 +271,7 @@ function mkCard(h, rank) {
         <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
         <div class="hcard-wait-lbl">Wall Time</div>
        </div>`
-    : `<div class="hcard-empty" data-hosp-id="${h.hospital_id}" data-hosp-name="${h.name.replace(/"/g,'&quot;')}">
-        <div class="hcard-empty-icon">◷</div>
-        <div class="hcard-empty-title">No crew has updated in the last hour</div>
-        <div class="hcard-empty-cta">Be the first — tap to report wait time</div>
-       </div>`;
+    : `<div class="hcard-no-data">No crew has updated in the last hour</div>`;
 
   return `
     <div class="hcard ${cls}" style="animation-delay:${rank * 0.04}s">
@@ -349,12 +345,6 @@ function renderCards() {
     });
   });
 
-  // Wire empty-state blocks — tap to go to report form
-  listEl.querySelectorAll('.hcard-empty').forEach(el => {
-    el.addEventListener('click', () => {
-      import('./form.js').then(m => m.navigate('form'));
-    });
-  });
 }
 
 // ── Polling ───────────────────────────────────────────────────────────────────
@@ -497,11 +487,7 @@ export function setupDashboardSearch() {
                   <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
                   <div class="hcard-wait-lbl">Wall Time</div>
                  </div>`
-              : `<div class="hcard-empty hcard-empty--srch" data-hosp-id="${h.hospital_id}">
-                  <div class="hcard-empty-icon">◷</div>
-                  <div class="hcard-empty-title">No crew has updated in the last hour</div>
-                  <div class="hcard-empty-cta">Be the first — tap to report wait time</div>
-                 </div>`;
+              : `<div class="hcard-no-data">No crew has updated in the last hour</div>`;
 
             return `
               <div class="hcard ${cls}" style="animation-delay:${i * 0.04}s">
@@ -515,13 +501,6 @@ export function setupDashboardSearch() {
                 ${caution}
               </div>`;
           }).join('')}`;
-
-        // Wire empty-state blocks in search results
-        results.querySelectorAll('.hcard-empty').forEach(el => {
-          el.addEventListener('click', () => {
-            import('./form.js').then(m => m.navigate('form'));
-          });
-        });
 
         // Wire the "← Back to nearby" button inside results
         document.getElementById('dash-srch-back-btn')?.addEventListener('click', () => {

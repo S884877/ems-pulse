@@ -307,20 +307,24 @@ html,body{font-family:var(--ff);background:var(--bg);color:var(--ink);min-height
 
 /* No crew data state — replaces wall time block */
 .hcard-no-data{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:7px;
   padding:20px 16px;
   border-top:1px solid var(--bdr);
   min-height:64px;
+  text-align:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.hcard-no-data-inner{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
   font-family:var(--fm);
   font-size:11px;
   color:var(--i4);
   letter-spacing:.03em;
-  text-align:center;
 }
-.hcard-no-data-icon{font-size:13px;opacity:.5;flex-shrink:0;}
+.hcard-no-data-icon{font-size:12px;opacity:.45;line-height:1;}
 
 /* Card quick action */
 .hcard-action{padding:0 14px 12px;}

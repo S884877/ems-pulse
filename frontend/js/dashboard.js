@@ -233,9 +233,11 @@ function updateTimestamp() {
 setInterval(updateTimestamp, 5000);
 
 // ── Freshness helpers ─────────────────────────────────────────────────────────
+// Single source of truth: only active waiting reports (queue_count) count.
+// Cleared reports are excluded by the backend — report_count is not used.
 function freshnessInfo(h) {
   return {
-    hasReports: (h.queue_count > 0 || (h.report_count != null && h.report_count > 0)),
+    hasReports: h.queue_count > 0,
     queueCount: h.queue_count || 0,
   };
 }
@@ -269,7 +271,11 @@ function mkCard(h, rank) {
         <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
         <div class="hcard-wait-lbl">Wall Time</div>
        </div>`
-    : `<div class="hcard-no-data"><div class="hcard-no-data-inner"><span class="hcard-no-data-icon">🕐</span><span>No crew has updated in the last hour</span></div></div>`;
+    : `<div class="hcard-empty" data-hosp-id="${h.hospital_id}" data-hosp-name="${h.name.replace(/"/g,'&quot;')}">
+        <div class="hcard-empty-icon">◷</div>
+        <div class="hcard-empty-title">No crew has updated in the last hour</div>
+        <div class="hcard-empty-cta">Be the first — tap to report wait time</div>
+       </div>`;
 
   return `
     <div class="hcard ${cls}" style="animation-delay:${rank * 0.04}s">
@@ -339,6 +345,13 @@ function renderCards() {
   // Wire report buttons
   listEl.querySelectorAll('.hcard-report-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      import('./form.js').then(m => m.navigate('form'));
+    });
+  });
+
+  // Wire empty-state blocks — tap to go to report form
+  listEl.querySelectorAll('.hcard-empty').forEach(el => {
+    el.addEventListener('click', () => {
       import('./form.js').then(m => m.navigate('form'));
     });
   });
@@ -470,7 +483,7 @@ export function setupDashboardSearch() {
           </div>
           ${sorted.map((h, i) => {
             const { cls, label } = sevInfo(h.severity);
-            const hasReports = h.queue_count > 0 || (h.report_count != null && h.report_count > 0);
+            const hasReports = h.queue_count > 0;  // single source of truth — cleared reports excluded
             const caution = (h.has_caution && h.caution_flags?.length)
               ? `<div class="caution-banner">
                    <span class="caution-icon">⚠️</span>
@@ -484,7 +497,11 @@ export function setupDashboardSearch() {
                   <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
                   <div class="hcard-wait-lbl">Wall Time</div>
                  </div>`
-              : `<div class="hcard-no-data"><div class="hcard-no-data-inner"><span class="hcard-no-data-icon">🕐</span><span>No crew has updated in the last hour</span></div></div>`;
+              : `<div class="hcard-empty hcard-empty--srch" data-hosp-id="${h.hospital_id}">
+                  <div class="hcard-empty-icon">◷</div>
+                  <div class="hcard-empty-title">No crew has updated in the last hour</div>
+                  <div class="hcard-empty-cta">Be the first — tap to report wait time</div>
+                 </div>`;
 
             return `
               <div class="hcard ${cls}" style="animation-delay:${i * 0.04}s">
@@ -498,6 +515,13 @@ export function setupDashboardSearch() {
                 ${caution}
               </div>`;
           }).join('')}`;
+
+        // Wire empty-state blocks in search results
+        results.querySelectorAll('.hcard-empty').forEach(el => {
+          el.addEventListener('click', () => {
+            import('./form.js').then(m => m.navigate('form'));
+          });
+        });
 
         // Wire the "← Back to nearby" button inside results
         document.getElementById('dash-srch-back-btn')?.addEventListener('click', () => {

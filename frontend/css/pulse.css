@@ -305,6 +305,9 @@ html,body{font-family:var(--ff);background:var(--bg);color:var(--ink);min-height
 .caution-flags{display:flex;flex-wrap:wrap;gap:4px;}
 .caution-flag{font-family:var(--fm);font-size:10px;color:var(--O);font-weight:500;background:rgba(192,96,0,0.08);padding:2px 7px;border-radius:10px;}
 
+/* No crew data state — replaces wall time block */
+.hcard-no-data{text-align:center;padding:14px 14px 12px;border-top:1px solid var(--bdr);font-family:var(--fm);font-size:11px;color:var(--i3);letter-spacing:.02em;}
+
 /* Card quick action */
 .hcard-action{padding:0 14px 12px;}
 .hcard-report-btn{width:100%;padding:11px 0;background:var(--ink);color:#fff;border:none;border-radius:9px;font-family:var(--ff);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;min-height:44px;}

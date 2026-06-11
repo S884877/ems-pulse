@@ -271,7 +271,14 @@ function mkCard(h, rank) {
        </div>`
     : '';
 
-  const staleNotice = freshnessBadge(h);
+  const { hasReports } = freshnessInfo(h);
+
+  const waitBlock = hasReports
+    ? `<div class="hcard-wait">
+        <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
+        <div class="hcard-wait-lbl">Wall Time</div>
+       </div>`
+    : `<div class="hcard-no-data">No crew updates in the last 2 hrs</div>`;
 
   return `
     <div class="hcard ${cls}" style="animation-delay:${rank * 0.04}s">
@@ -284,12 +291,8 @@ function mkCard(h, rank) {
           <div class="haddr">${h.city || 'NY'}</div>
         </div>
       </div>
-      <div class="hcard-wait">
-        <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
-        <div class="hcard-wait-lbl">Wall Time</div>
-      </div>
+      ${waitBlock}
       ${cautionBanner}
-      ${staleNotice}
       <div class="hcard-action">
         <button class="hcard-report-btn" data-hosp-id="${h.hospital_id}" data-hosp-name="${h.name.replace(/"/g, '&quot;')}">Report Wait Time</button>
       </div>
@@ -491,6 +494,13 @@ export function setupDashboardSearch() {
                    <span>No crew reports in the last 30 minutes — wall time reflects earlier submissions.</span>
                  </div>`
               : '';
+            const srchWaitBlock = hasReports
+              ? `<div class="hcard-wait">
+                  <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
+                  <div class="hcard-wait-lbl">Wall Time</div>
+                 </div>`
+              : `<div class="hcard-no-data">No crew updates in the last 2 hrs</div>`;
+
             return `
               <div class="hcard ${cls}" style="animation-delay:${i * 0.04}s">
                 <div class="htop">
@@ -499,11 +509,8 @@ export function setupDashboardSearch() {
                     <div class="haddr">${h.city || 'New York State'}</div>
                   </div>
                 </div>
-                <div class="hcard-wait">
-                  <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
-                  <div class="hcard-wait-lbl">Wall Time</div>
-                </div>
-                ${caution}${stale}
+                ${srchWaitBlock}
+                ${caution}
               </div>`;
           }).join('')}`;
 

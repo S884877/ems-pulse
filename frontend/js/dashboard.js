@@ -281,7 +281,7 @@ function mkCard(h, rank) {
             <span class="hrank">#${rank + 1}</span>
             <div class="hname">${h.name}</div>
           </div>
-          <div class="haddr">${distStr} · ${h.city || 'NY'}</div>
+          <div class="haddr">${h.city || 'NY'}</div>
         </div>
       </div>
       <div class="hcard-wait">
@@ -334,17 +334,7 @@ function renderCards() {
   const staleCount = ST.hospitals.filter(h => !freshnessInfo(h).hasReports).length;
   const freshCount = ST.hospitals.length - staleCount;
 
-  const dataHealthBar = staleCount > 0
-    ? `<div class="data-health-bar">
-        <span>🟢 ${freshCount} live</span>
-        <span class="dhb-sep">·</span>
-        <span>🕐 ${staleCount} estimated</span>
-        <span class="dhb-sep">·</span>
-        <span>Last 30 min window</span>
-       </div>`
-    : `<div class="data-health-bar all-live">
-        <span>🟢 All ${freshCount} hospitals have live crew reports</span>
-       </div>`;
+  const dataHealthBar = '';
 
   const countStr = `${ST.hospitals.length} hospital${ST.hospitals.length !== 1 ? 's' : ''} within ${ST.radiusMi} mi · ${sortLabel()}`;
   listEl.innerHTML =

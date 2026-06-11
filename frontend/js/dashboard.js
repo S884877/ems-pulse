@@ -269,7 +269,7 @@ function mkCard(h, rank) {
         <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
         <div class="hcard-wait-lbl">Wall Time</div>
        </div>`
-    : `<div class="hcard-no-data">No crew updates in the last hour</div>`;
+    : `<div class="hcard-no-data"><span class="hcard-no-data-icon">🕐</span>No crew has updated in the last hour</div>`;
 
   return `
     <div class="hcard ${cls}" style="animation-delay:${rank * 0.04}s">
@@ -484,7 +484,7 @@ export function setupDashboardSearch() {
                   <div class="hcard-wait-num ${cls}">${h.wall_time_minutes} <span class="hcard-wait-unit">mins</span></div>
                   <div class="hcard-wait-lbl">Wall Time</div>
                  </div>`
-              : `<div class="hcard-no-data">No crew updates in the last hour</div>`;
+              : `<div class="hcard-no-data"><span class="hcard-no-data-icon">🕐</span>No crew has updated in the last hour</div>`;
 
             return `
               <div class="hcard ${cls}" style="animation-delay:${i * 0.04}s">

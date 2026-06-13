@@ -3,6 +3,7 @@ import { getState, requestLocation } from './location.js';
 
 const ST = {
   screen: 'landing',
+  navHistory: [],        // tracks screens visited so back goes to the right place
   hospital: null,
   matchConfirmed: false,
   isWaiting: true,
@@ -13,7 +14,14 @@ const ST = {
 export function getST() { return ST; }
 
 // ── Navigation ──────────────────────────────────────────────────────────────
-export function navigate(screen) {
+// skipHistory: true when navigating back (avoids pushing back-nav into history)
+export function navigate(screen, skipHistory = false) {
+  // Push current screen to history before leaving (but not when going back,
+  // and not when staying on the same screen)
+  if (!skipHistory && screen !== ST.screen) {
+    ST.navHistory.push(ST.screen);
+  }
+
   ST.screen = screen;
   document.querySelectorAll('.scr').forEach(el => el.classList.remove('active'));
   const target = document.getElementById(`scr-${screen}`);
@@ -32,14 +40,13 @@ export function navigate(screen) {
   window.scrollTo(0, 0);
 }
 
-export function goBack() { navigate('landing'); }
+export function goBack() {
+  const prev = ST.navHistory.pop();
+  navigate(prev || 'landing', true);  // skipHistory=true so back doesn't re-push
+}
 
 // ── Form init ─────────────────────────────────────────────────────────────
 async function initForm() {
-  ST.hospital = null;
-  ST.matchConfirmed = false;
-  showTrigger();
-
   // Always reset submit button — user may have navigated away mid-submission
   // leaving the button disabled with "Submitting…" text permanently
   const btn = document.getElementById('btn-submit');
@@ -48,7 +55,15 @@ async function initForm() {
     btn.textContent = 'Submit report →';
   }
 
-  // Attempt silent GPS auto-match in background
+  // If a hospital is already selected, restore its confirmed state and stop.
+  // Do NOT wipe the selection just because the user switched screens.
+  if (ST.hospital && ST.matchConfirmed) {
+    showConfirmed(ST.hospital, 'manual');
+    return;
+  }
+
+  // No hospital selected yet — show trigger and attempt silent GPS auto-match
+  showTrigger();
   try {
     await requestLocation();
     const s = getState();
@@ -399,6 +414,12 @@ export function setupForm() {
       }, controller.signal);
       clearTimeout(_abort);
       toast('✓ Report submitted — thank you!');
+      // Reset form state only after successful submission
+      ST.hospital = null;
+      ST.matchConfirmed = false;
+      ST.isWaiting = true;
+      ST.waitMinutes = 15;
+      ST.walkInBucket = 10;
       setTimeout(() => navigate('landing'), 2500);
     } catch (err) {
       clearTimeout(_abort);
